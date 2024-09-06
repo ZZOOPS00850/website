@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>口碑預算分配機</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; max-width: 800px; margin: auto; }
+        .input-section { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; }
+        .calc-btn { margin-top: 10px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        select, input[type="number"], input[type="date"] { width: 100%; padding: 8px; margin: 4px 0; box-sizing: border-box; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+        .tooltip { position: relative; display: inline-block; cursor: pointer; color: blue; margin-left: 5px; }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: #f9f9f9;
+            color: #333;
+            text-align: center;
+            border-radius: 5px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; 
+            left: 50%;
+            margin-left: -110px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid #ddd;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+    </style>
+</head>
+<body>
+    <h2>口碑預算分配機</h2>
+
+    <!-- 日期輸入 -->
+    <div class="input-section">
+        <label>期望開始日期：<input type="date" id="startDate" required></label><br>
+        <label>期望結束日期：<input type="date" id="endDate" required></label>
+    </div>
+
+    <!-- 二選一選擇 -->
+    <div class="input-section">
+        <label><input type="radio" name="option" value="budget" checked> 輸入預算 & 選擇產業</label>
+        <label><input type="radio" name="option" value="articles"> 輸入文章篇數</label>
+    </div>
+
+    <!-- 輸入預算和選擇產業 -->
+    <div id="budgetSection" class="input-section">
+        <h3>輸入預算 & 選擇產業別</h3>
+        <label>選擇產業別：
+            <select id="industry">
+                <option value="餐飲類">餐飲類（王品、開飯、饗太多）</option>
+                <option value="金融類">金融類（信用卡推廣、投資相關）</option>
+                <option value="通路量販">通路量販（家樂福）</option>
+                <option value="民生用品">民生用品（蘇菲、可果美番茄醬）</option>
+            </select>
+        </label><br><br>
+
+        <label>輸入總預算：<input type="number" id="budget" min="0" oninput="this.value = Math.abs(this.value)" /></label><br><br>
+
+        <button class="calc-btn" onclick="calculateBudget()">計算分配</button>
+    </div>
+
+    <!-- 輸入文章篇數 -->
+    <div id="articleSection" class="input-section" style="display: none;">
+        <h3>輸入文章篇數</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>項目</th>
+                    <th>數量</th>
+                    <th>單價</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>熱門議題
+                        <span class="tooltip">?
+                            <span class="tooltiptext">FB公開社團互動2000次以上或Dcard全站/分類熱門文</span>
+                        </span>
+                    </td>
+                    <td><input type="number" id="hotTopics" value="0" min="0" oninput="this.value = Math.abs(this.value)" /></td>
+                    <td>40,000</td>
+                </tr>
+                <tr>
+                    <td>一般圖文議題
+                        <span class="tooltip">?
+                            <span class="tooltiptext">信用卡核卡文、百貨公司戰利品文</span>
+                        </span>
+                    </td>
+                    <td><input type="number" id="generalTopics" value="0" min="0" oninput="this.value = Math.abs(this.value)" /></td>
+                    <td>12,000</td>
+                </tr>
+                <tr>
+                    <td>特殊圖文議題
+                        <span class="tooltip">?
+                            <span class="tooltiptext">指定國家旅遊/訂房文、餐廳開箱</span>
+                        </span>
+                    </td>
+                    <td><input type="number" id="specialTopics" value="0" min="0" oninput="this.value = Math.abs(this.value)" /></td>
+                    <td>15,000</td>
+                </tr>
+                <tr>
+                    <td>短開文/情報文
+                        <span class="tooltip">?
+                            <span class="tooltiptext">短篇情報文</span>
+                        </span>
+                    </td>
+                    <td><input type="number" id="shortArticles" value="0" min="0" oninput="this.value = Math.abs(this.value)" /></td>
+                    <td>8,000</td>
+                </tr>
+                <tr>
+                    <td>過稿回文
+                        <span class="tooltip">?
+                            <span class="tooltiptext">用於開題下方回文置入</span>
+                        </span>
+                    </td>
+                    <td><input type="number" id="replyPosts" value="0" min="0" oninput="this.value = Math.abs(this.value)" /></td>
+                    <td>800</td>
+                </tr>
+                <tr>
+                    <td>口碑監測
+                        <span class="tooltip">?
+                            <span class="tooltiptext">使用系統監測論壇上可置入的回文</span>
+                        </span>
+                    </td>
+                    <td><input type="checkbox" id="monitoringFee" value="12000" /></td>
+                    <td>12,000</td>
+                </tr>
+                <tr>
+                    <td>新聞轉發
+                        <span class="tooltip">?
+                            <span class="tooltiptext">選擇新聞轉發方案</span>
+                        </span>
+                    </td>
+                    <td>
+                        <select id="newsRepost">
+                            <option value="0">選擇方案</option>
+                            <option value="8000">方案A：6篇</option>
+                            <option value="15000">方案B：8篇</option>
+                            <option value="25000">方案C：12篇</option>
+                            <option value="38000">方案D：15篇</option>
+                        </select>
+                    </td>
+                    <td>依選擇方案</td>
+                </tr>
+            </tbody>
+        </table>
+        <button class="calc-btn" onclick="calculateArticles()">計算總花費</button>
+    </div>
+
+    <!-- 結果顯示 -->
+    <h3>分配結果：</h3>
+    <div id="budgetResult" style="display: none;">
+        <p>專案管理費使用：<span id="managementFee">0</span>個月</p>
+        <p>專案管理費金額：<span id="managementCost">0</span>元</p>
+        <p>圖文議題分配篇數: <span id="writing">0</span></p>
+        <p>短開文分配篇數: <span id="short">0</span></p>
+        <p>維運金額（建議用於彈性加強文章成效）：<span id="remainingBudget">0</span>元</p>
+    </div>
+
+    <div id="articleResult" style="display: none;">
+        <p>總花費金額: <span id="totalCost">0</span>元</p>
+    </div>
+
+    <script>
+        document.querySelectorAll('input[name="option"]').forEach(option => {
+            option.addEventListener('change', () => {
+                document.getElementById('budgetSection').style.display = option.value === 'budget' ? 'block' : 'none';
+                document.getElementById('articleSection').style.display = option.value === 'articles' ? 'block' : 'none';
+                document.getElementById('budgetResult').style.display = 'none';
+                document.getElementById('articleResult').style.display = 'none';
+            });
+        });
+
+        document.getElementById('startDate').addEventListener('change', validateDates);
+        document.getElementById('endDate').addEventListener('change', validateDates);
+
+        function validateDates() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            if (endDate < startDate) {
+                alert('結束日期不能早於開始日期');
+                document.getElementById('endDate').value = '';
+            }
+        }
+
+        function checkDates() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            if (!startDate || !endDate) {
+                alert('請填寫執行走期');
+                return false;
+            }
+            return true;
+        }
+
+        function calculateManagementFee(totalArticles) {
+            if (!checkDates()) return { months: 0, cost: 0 };
+
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            const months = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24 * 30));
+            const feePerMonth = totalArticles <= 3 ? 10000 : 18000;
+            return { months, cost: months * feePerMonth };
+        }
+
+        function calculateBudget() {
+            if (!checkDates()) return;
+
+            const industry = document.getElementById('industry').value;
+            const budget = parseFloat(document.getElementById('budget').value);
+
+            // 預算分配比例
+            const allocation = {
+                '餐飲類': { writing: 0.7, short: 0.3 },
+                '金融類': { writing: 0.6, short: 0.4 },
+                '通路量販': { writing: 0.5, short: 0.5 },
+                '民生用品': { writing: 0.4, short: 0.6 },
+            }[industry];
+
+            const totalWritingCost = 12000;
+            const totalShortCost = 8000;
+
+            // 專案管理費計算
+            const management = calculateManagementFee(0);
+            let remainingBudget = budget - management.cost;
+
+            if (remainingBudget < Math.min(totalWritingCost, totalShortCost)) {
+                // 若預算不足以支付至少一篇文章的費用，直接歸類為維運金額
+                document.getElementById('writing').textContent = 0;
+                document.getElementById('short').textContent = 0;
+                document.getElementById('remainingBudget').textContent = remainingBudget < 0 ? 0 : remainingBudget.toLocaleString();
+            } else {
+                // 計算篇數
+                const writing = Math.floor((remainingBudget * allocation.writing) / totalWritingCost);
+                const short = Math.floor((remainingBudget * allocation.short) / totalShortCost);
+                const totalArticles = writing + short;
+
+                // 更新專案管理費依篇數
+                const management = calculateManagementFee(totalArticles);
+                remainingBudget = budget - management.cost - (writing * totalWritingCost + short * totalShortCost);
+
+                document.getElementById('writing').textContent = writing;
+                document.getElementById('short').textContent = short;
+                document.getElementById('remainingBudget').textContent = remainingBudget < 0 ? 0 : remainingBudget.toLocaleString();
+            }
+
+            // 更新專案管理費顯示
+            document.getElementById('managementFee').textContent = management.months;
+            document.getElementById('managementCost').textContent = management.cost.toLocaleString();
+            document.getElementById('budgetResult').style.display = 'block';
+        }
+
+        function calculateArticles() {
+            if (!checkDates()) return;
+
+            const hotTopics = parseInt(document.getElementById('hotTopics').value) || 0;
+            const generalTopics = parseInt(document.getElementById('generalTopics').value) || 0;
+            const specialTopics = parseInt(document.getElementById('specialTopics').value) || 0;
+            const shortArticles = parseInt(document.getElementById('shortArticles').value) || 0;
+            const totalArticles = hotTopics + generalTopics + specialTopics + shortArticles;
+
+            const management = calculateManagementFee(totalArticles);
+
+            const hotTopicsCost = hotTopics * 40000;
+            const generalTopicsCost = generalTopics * 12000;
+            const specialTopicsCost = specialTopics * 15000;
+            const shortArticlesCost = shortArticles * 8000;
+            const replyPostsCost = (parseInt(document.getElementById('replyPosts').value) || 0) * 800;
+            const monitoringFee = document.getElementById('monitoringFee').checked ? 12000 : 0;
+            const newsRepostCost = parseInt(document.getElementById('newsRepost').value) || 0;
+
+            const totalCost = hotTopicsCost + generalTopicsCost + specialTopicsCost + shortArticlesCost + replyPostsCost + monitoringFee + newsRepostCost + management.cost;
+            document.getElementById('totalCost').textContent = totalCost.toLocaleString();
+            document.getElementById('articleResult').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
